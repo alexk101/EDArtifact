@@ -1,14 +1,11 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc, html
 import pandas as pd
 from dash.dependencies import Input, Output
 import base64
 import json
 from textwrap import dedent as d
 from datetime import datetime
-
-
 
 
 #EDA artifacts images examples directory

@@ -1,32 +1,16 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+import dash.html as html
 import pandas as pd
 from dash.dependencies import Input, Output, State
 import base64
-import json
 import io
 import flask
 import os
-from textwrap import dedent as d
-from datetime import datetime
-import dash_table
 import plotly.graph_objs as go
-import plotly
-from datetime import timedelta
 from UIHelper import UIHelper
 from EDAData import EDAData
-import time
-import dash_auth
 
-# from datetime import timezone
-from datetime import datetime
-
-# import urllib.parse
-try:
-    from urllib.parse import urlparse
-except ImportError:
-     from urlparse import urlparse
 
 STATIC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
@@ -42,14 +26,6 @@ app.config['suppress_callback_exceptions'] = True
 @app.server.route('/static/<resource>')
 def serve_static(resource):
     return flask.send_from_directory(STATIC_PATH, resource)
-
-## Read from password file
-VALID_USERNAME_PASSWORD_PAIRS =  pd.read_csv('static/auth_details.csv')
-VALID_USERNAME_PASSWORD_PAIRS = VALID_USERNAME_PASSWORD_PAIRS.values
-auth = dash_auth.BasicAuth(
-    app,
-    VALID_USERNAME_PASSWORD_PAIRS
-)
 
 # Defining some text to add on the dashboard
 title1 = '''
@@ -175,8 +151,7 @@ app.layout = html.Div(children=[
         ]),
     html.Br(),
     html.Div(id='error message'),
-    dcc.Graph(
-        id='eda_data_graph'),
+    dcc.Graph(id='eda_data_graph'),
     html.Div([
         html.Div([
             html.Button(
@@ -351,12 +326,6 @@ def update_output(fig, continue_clicks, next,prev):
                 State('artifact-type','value'),])
 def update_window(contents,filename,clickData, clean_all_click, artifact_all_click,continue_clicks,done,
 next_epoch,prev_epoch,next_window,prev_window,download,reset,value, confidence, type_artifact):
-    header = flask.request.headers.get('Authorization', None)
-    if header:
-        username_password = base64.b64decode(header.split('Basic ')[1])
-        username_password_utf8 = username_password.decode('utf-8')
-        username, p = username_password_utf8.split(':')
-        callback_vars.set_username(username)
     move = False
     df = None
     if reset != callback_vars.clicks_reset:
@@ -398,6 +367,7 @@ next_epoch,prev_epoch,next_window,prev_window,download,reset,value, confidence, 
             df = parse_contents(contents_eda, filename_eda)
             columns = list(df)
             if 'EDA_Filtered' in columns and 'Time' in columns:
+                print(f'Uploading cringe')
                 eda_Data.upload(df.EDA_Filtered, df.Time)
             if filename_acc is not None:
                 df_acc = parse_contents(contents_acc, filename_acc)
@@ -407,6 +377,7 @@ next_epoch,prev_epoch,next_window,prev_window,download,reset,value, confidence, 
     ##Waiting for the file to be loaded before displaying:
     
     if eda_Data.loaded:
+        print(f'Data loaded')
         save = False
         move = False
         if next_window != callback_vars.clicks_next:
@@ -571,4 +542,4 @@ def update_artifact_type(fig):
 
 if __name__ == '__main__':
     # app.run_server(debug=True)
-    app.run_server()
+    app.run_server(debug=True)
