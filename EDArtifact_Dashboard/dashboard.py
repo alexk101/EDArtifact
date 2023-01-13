@@ -256,21 +256,23 @@ html.Div(id="hidden-div",style={'display':'none'})
 
 
 def parse_contents(contents, filename):
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-    try:
-        df = None
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-        return df
-    except Exception as e:
-        print(e)
-        return None
+    if contents:
+        content_type, content_string = contents.split(',')
+        decoded = base64.b64decode(content_string)
+        try:
+            df = None
+            if 'csv' in filename:
+                # Assume that the user uploaded a CSV file
+                df = pd.read_csv(
+                    io.StringIO(decoded.decode('utf-8')))
+            elif 'xls' in filename:
+                # Assume that the user uploaded an excel file
+                df = pd.read_excel(io.BytesIO(decoded))
+            return df
+        except Exception as e:
+            print(e)
+            return None
+    return None
 
 # Callback to create the file on load
 @app.callback(Output(component_id='eda_data_graph', component_property='figure'),
@@ -364,6 +366,7 @@ next_epoch,prev_epoch,next_window,prev_window,download,reset,value, confidence, 
                 contents_acc = c      
         if filename_eda!=callback_vars.filename:
             callback_vars.filename = filename_eda
+            print(contents_eda, filename_eda)
             df = parse_contents(contents_eda, filename_eda)
             columns = list(df)
             if 'EDA_Filtered' in columns and 'Time' in columns:
